@@ -154,37 +154,6 @@ def main():
             
             # Export functionality
             st.markdown("---")
-            # Export functionality
-            st.markdown("---")
-            st.subheader("Export Analysis")
-            
-            if st.button("Export Analysis Results"):
-                # Create DataFrame for predetermined codes
-                predetermined_df = pd.DataFrame([
-                    {"Category": code, "Analysis": results['predetermined_codes'].get(code, "")}
-                    for code in codes
-                ])
-                
-                # Create DataFrame for emergent codes
-                emergent_df = pd.DataFrame([
-                    {"Category": code, "Analysis": results['emergent_codes'].get(code, "")}
-                    for code in emergent_codes
-                ])
-                
-                # Combine both DataFrames
-                export_df = pd.concat([
-                    predetermined_df.assign(Type="Predetermined"),
-                    emergent_df.assign(Type="Emergent")
-                ])
-                
-                # Convert DataFrame to CSV for download
-                csv = export_df.to_csv(index=False)
-                st.download_button(
-                    label="Download Analysis CSV",
-                    data=csv,
-                    file_name="response_analysis_results.csv",
-                    mime="text/csv"
-                )
             st.subheader("Export Analysis")
             
             if st.button("Export Analysis Results"):
