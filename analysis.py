@@ -15,38 +15,40 @@ def analyze_response(text):
     
     Text to analyze: {text}
     
-    Please analyze the text for the following categories and provide results in JSON format:
-    
-    Predetermined Codes:
-    - Academic Language Support
-    - Grammar Support
-    - Content Knowledge Support
-    - Collaboration with Teachers
-    - Student Engagement
-    - Assessment of Language Proficiency
-    
-    Emergent Codes:
-    - Perceptions of Language Acquisition
-    - Perceived Challenges
-    - Innovative Practices
-    - Perceptions of Error
-    
-    Format the response as a JSON object with two main keys: 'predetermined_codes' and 'emergent_codes',
-    each containing the relevant findings for their respective categories.
+    Return a JSON object with exactly this structure:
+    {{
+        "predetermined_codes": {{
+            "Academic Language Support": "explanation here",
+            "Grammar Support": "explanation here",
+            "Content Knowledge Support": "explanation here",
+            "Collaboration with Teachers": "explanation here",
+            "Student Engagement": "explanation here",
+            "Assessment of Language Proficiency": "explanation here"
+        }},
+        "emergent_codes": {{
+            "Perceptions of Language Acquisition": "explanation here",
+            "Perceived Challenges": "explanation here",
+            "Innovative Practices": "explanation here",
+            "Perceptions of Error": "explanation here"
+        }}
+    }}
     """
 
     try:
         response = client.chat.completions.create(
             model=MODEL,
             messages=[
-                {"role": "system", "content": "You are an expert in analyzing special education responses."},
+                {"role": "system", "content": "You are an expert in analyzing special education responses. Always respond with valid JSON."},
                 {"role": "user", "content": prompt}
             ],
             response_format={"type": "json_object"},
             temperature=0.7
         )
         
-        return response.choices[0].message.content
+        # Parse the JSON response
+        import json
+        result = json.loads(response.choices[0].message.content)
+        return result
     except Exception as e:
         return {
             "predetermined_codes": {
