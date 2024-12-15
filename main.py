@@ -18,7 +18,7 @@ def load_data(uploaded_file=None):
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
         else:
-            df = pd.read_csv("student_engagement_responses.csv")
+            df = pd.read_csv("Varied_PhD-Level_Responses.csv")
         return df
     except Exception as e:
         st.error(f"Error loading data: {e}")
@@ -92,9 +92,20 @@ def main():
                 response_text = f"""
                 "{selected_student}, 5th Grade Teacher"
 
-                Responses:
-                What student information do you need to plan the lesson?
+                Student Information:
                 {student_data['What student information do you need to plan the lesson?']}
+
+                Information from Other Teachers:
+                {student_data['What information would you ask of the other fifth-grade teachers?']}
+
+                Student Engagement:
+                {student_data['How would you ensure all students are engaged in the lesson?']}
+
+                Assessment Approach:
+                {student_data['How would you assess the assignment?']}
+
+                Objectives Assessment:
+                {student_data["How would you assess students' understanding of each of the objectives?"]}
                 """
             
             # Add a container with custom styling for the response text
