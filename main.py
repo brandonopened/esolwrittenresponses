@@ -45,11 +45,9 @@ def load_data(uploaded_file=None):
         return None
 
 def main():
-    # Initialize session state for historical tracking and custom categories
+    # Initialize session state for historical tracking
     if 'analysis_history' not in st.session_state:
         st.session_state.analysis_history = {}
-    if 'custom_categories' not in st.session_state:
-        st.session_state.custom_categories = []
     
     # Title
     st.title("Special Education Response Analysis")
@@ -57,29 +55,6 @@ def main():
     # Sidebar
     with st.sidebar:
         st.header("Data Options")
-
-        # Custom Categories Management
-        st.header("Custom Categories")
-        new_category = st.text_input("Add New Category", key="new_category")
-        if st.button("Add Category"):
-            if new_category and new_category not in st.session_state.custom_categories:
-                st.session_state.custom_categories.append(new_category)
-                st.success(f"Added category: {new_category}")
-            elif new_category in st.session_state.custom_categories:
-                st.warning("Category already exists")
-            else:
-                st.warning("Please enter a category name")
-        
-        if st.session_state.custom_categories:
-            st.write("Current Custom Categories:")
-            for idx, category in enumerate(st.session_state.custom_categories):
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.write(category)
-                with col2:
-                    if st.button("Remove", key=f"remove_{idx}"):
-                        st.session_state.custom_categories.pop(idx)
-                        st.experimental_rerun()
         
         # File uploader
         uploaded_file = st.file_uploader(
@@ -181,7 +156,7 @@ def main():
             
             # Handle analysis when button is clicked
             if analyze_button:
-                analysis_results = analyze_response(response_text, st.session_state.custom_categories)
+                analysis_results = analyze_response(response_text)
                 st.session_state['analysis_results'] = analysis_results
                 st.session_state['show_analysis'] = True
                 
@@ -224,12 +199,6 @@ def main():
                 with st.expander(f"{code}", expanded=False):
                     st.write(results['emergent_codes'].get(code, "No relevant content found"))
             
-            if st.session_state.custom_categories:
-                st.subheader("Custom Codes")
-                for code in st.session_state.custom_categories:
-                    with st.expander(f"{code}", expanded=False):
-                        st.write(results['custom_codes'].get(code, "No relevant content found"))
-            
             # Export functionality
             st.markdown("---")
             st.subheader("Export Analysis")
@@ -250,17 +219,10 @@ def main():
                     for code in emergent_codes
                 ])
                 
-                # Create DataFrame for custom codes
-                custom_df = pd.DataFrame([
-                    {"Student": student_identifier, "Category": code, "Analysis": results['custom_codes'].get(code, "")}
-                    for code in st.session_state.custom_categories
-                ])
-                
-                # Combine all DataFrames
+                # Combine both DataFrames
                 export_df = pd.concat([
                     predetermined_df.assign(Type="Predetermined"),
-                    emergent_df.assign(Type="Emergent"),
-                    custom_df.assign(Type="Custom")
+                    emergent_df.assign(Type="Emergent")
                 ])
                 
                 # Convert DataFrame to CSV for download
