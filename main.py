@@ -75,14 +75,14 @@ def main():
                     Information from Other Teachers:
                     {student_data['What information would you ask of the other fifth-grade teachers?']}
                     
-                    Ensuring Student Engagement:
-                    {student_data['How would you ensure all students, regardless of their proficiency level, are engaged in the lesson?']}
+                    Student Engagement:
+                    {student_data['How would you ensure all students are engaged in the lesson?']}
                     
                     Assessment Approach:
                     {student_data['How would you assess the assignment?']}
                     
                     Objectives Assessment:
-                    {student_data['How would you assess students‚Äô understanding of each of the objectives?']}
+                    {student_data["How would you assess students' understanding of each of the objectives?"]}
                     """
                     all_responses.append(response)
                 response_text = "\n\n".join(all_responses)
