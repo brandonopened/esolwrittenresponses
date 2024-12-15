@@ -185,7 +185,9 @@ def main():
             
             for code in codes:
                 with st.expander(f"{code}", expanded=False):
-                    st.write(results['predetermined_codes'].get(code, "No relevant content found"))
+                    quotes = results['predetermined_codes'].get(code, ["No direct quote found"])
+                    for quote in quotes:
+                        st.markdown(f"- {quote}")
             
             st.subheader("Emergent Codes")
             emergent_codes = [
@@ -197,7 +199,9 @@ def main():
             
             for code in emergent_codes:
                 with st.expander(f"{code}", expanded=False):
-                    st.write(results['emergent_codes'].get(code, "No relevant content found"))
+                    quotes = results['emergent_codes'].get(code, ["No direct quote found"])
+                    for quote in quotes:
+                        st.markdown(f"- {quote}")
             
             # Export functionality
             st.markdown("---")
