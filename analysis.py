@@ -8,13 +8,18 @@ MODEL = "gpt-4o"
 # Initialize OpenAI client
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-def analyze_response(text):
+def analyze_response(text, custom_categories=None):
+    # Initialize custom categories if not provided
+    custom_categories = custom_categories or []
+    
     prompt = f"""
     Analyze the following special education response text. For each category, find and extract EXACT quotes that demonstrate that concept. Include the student's name with each quote.
+    
+    Additional Custom Categories: {', '.join(custom_categories) if custom_categories else 'None'}
 
     Text to analyze: {text}
 
-    Return a JSON object with exactly this structure:
+    Return a JSON object with this structure, including any additional custom categories in custom_codes:
     {{
         "predetermined_codes": {{
             "Academic Language Support": ["Student Name: 'exact quote'"],
@@ -29,6 +34,9 @@ def analyze_response(text):
             "Perceived Challenges": ["Student Name: 'exact quote'"],
             "Innovative Practices": ["Student Name: 'exact quote'"],
             "Perceptions of Error": ["Student Name: 'exact quote'"]
+        }},
+        "custom_codes": {{
+            {", ".join([f'"{cat}": ["Student Name: \'exact quote\'"]' for cat in custom_categories]) if custom_categories else ""}
         }}
     }}
 
@@ -55,6 +63,11 @@ def analyze_response(text):
         # Parse the JSON response
         import json
         result = json.loads(response.choices[0].message.content)
+        
+        # Ensure custom_codes exists in the result
+        if 'custom_codes' not in result:
+            result['custom_codes'] = {}
+            
         return result
     except Exception as e:
         return {
@@ -63,5 +76,6 @@ def analyze_response(text):
             },
             "emergent_codes": {
                 "error": f"Analysis failed: {str(e)}"
-            }
+            },
+            "custom_codes": {} #Adding empty custom_codes in case of error.
         }
