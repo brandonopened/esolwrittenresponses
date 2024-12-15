@@ -67,7 +67,12 @@ def main():
                 {student_data['What student information do you need to plan the lesson?']}
                 """
             
-            st.text_area("", value=response_text, height=300, disabled=True)
+            # Add a container with custom styling for the response text
+            st.markdown(f"""
+                <div class="response-container">
+                    <pre style="white-space: pre-wrap; font-family: sans-serif; margin: 0;">{response_text}</pre>
+                </div>
+                """, unsafe_allow_html=True)
             
             if st.button("Analyze Responses", type="primary"):
                 analysis_results = analyze_response(response_text)
