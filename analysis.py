@@ -12,42 +12,51 @@ def analyze_response(text, custom_categories=None):
     # Initialize custom categories if not provided
     custom_categories = custom_categories or []
     
-    prompt = f"""Analyze the following special education response text. For each category, find and extract EXACT quotes that demonstrate that concept. Include the student's name with each quote.
+    # Build the prompt in parts to avoid f-string issues
+    base_prompt = "Analyze the following special education response text. For each category, find and extract EXACT quotes that demonstrate that concept. Include the student's name with each quote.\n\n"
+    
+    categories_text = "Additional Custom Categories: " + (', '.join(custom_categories) if custom_categories else 'None') + "\n\n"
+    
+    analysis_text = "Text to analyze: " + text + "\n\n"
+    
+    json_structure = '''Return a JSON object with this structure:
+{
+    "predetermined_codes": {
+        "Academic Language Support": "Student Name: 'exact quote'",
+        "Grammar Support": "Student Name: 'exact quote'",
+        "Content Knowledge Support": "Student Name: 'exact quote'",
+        "Collaboration with Teachers": "Student Name: 'exact quote'",
+        "Student Engagement": "Student Name: 'exact quote'",
+        "Assessment of Language Proficiency": "Student Name: 'exact quote'"
+    },
+    "emergent_codes": {
+        "Perceptions of Language Acquisition": "Student Name: 'exact quote'",
+        "Perceived Challenges": "Student Name: 'exact quote'",
+        "Innovative Practices": "Student Name: 'exact quote'",
+        "Perceptions of Error": "Student Name: 'exact quote'"
+    },
+    "custom_codes": {
+'''
 
-Additional Custom Categories: {', '.join(custom_categories) if custom_categories else 'None'}
+    # Add custom categories to JSON structure
+    if custom_categories:
+        custom_codes = ',\n'.join(f'        "{cat}": "Student Name: \'exact quote\'"' for cat in custom_categories)
+        json_structure += custom_codes + '\n    }\n}'
+    else:
+        json_structure += '    }\n}'
 
-Text to analyze: {text}
+    instructions = '''
 
-Return a JSON object with this structure, including any additional custom categories in custom_codes:
-{{"predetermined_codes": {{
-    "Academic Language Support": "Student Name: 'exact quote'",
-    "Grammar Support": "Student Name: 'exact quote'",
-    "Content Knowledge Support": "Student Name: 'exact quote'",
-    "Collaboration with Teachers": "Student Name: 'exact quote'",
-    "Student Engagement": "Student Name: 'exact quote'",
-    "Assessment of Language Proficiency": "Student Name: 'exact quote'"
-}},
-"emergent_codes": {{
-    "Perceptions of Language Acquisition": "Student Name: 'exact quote'",
-    "Perceived Challenges": "Student Name: 'exact quote'",
-    "Innovative Practices": "Student Name: 'exact quote'",
-    "Perceptions of Error": "Student Name: 'exact quote'"
-}},
-"custom_codes": {{{", ".join([f'"{cat}": "Student Name: \'exact quote\'"' for cat in custom_categories]) if custom_categories else ""}}}
-}}"""
-
-    # Add instructions as a separate string
-    instructions = """
 Critical Instructions:
 1. ONLY use exact, word-for-word quotes from the text - NO paraphrasing or summarizing
 2. Each quote must be prefixed with the student's name
 3. Put quotes in 'single quotes' to clearly delineate them
 4. If multiple relevant quotes exist, separate them with semicolons
 5. If no relevant quote exists for a category, use "No direct quote found"
-6. Do not interpret or explain the quotes - just provide them exactly as written"""
+6. Do not interpret or explain the quotes - just provide them exactly as written'''
 
-    # Combine prompt and instructions
-    full_prompt = prompt + instructions
+    # Combine all parts of the prompt
+    full_prompt = base_prompt + categories_text + analysis_text + json_structure + instructions
 
     try:
         response = client.chat.completions.create(
