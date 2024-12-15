@@ -19,9 +19,29 @@ def load_data(uploaded_file=None):
             df = pd.read_csv(uploaded_file)
         else:
             df = pd.read_csv("Varied_PhD-Level_Responses.csv")
+        
+        # Remove any completely empty rows
+        df = df.dropna(how='all')
+        
+        # Ensure all required columns exist
+        required_columns = [
+            'Student',
+            'What student information do you need to plan the lesson?',
+            'What information would you ask of the other fifth-grade teachers?',
+            'How would you ensure all students are engaged in the lesson?',
+            'How would you assess the assignment?',
+            "How would you assess students' understanding of each of the objectives?"
+        ]
+        
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            st.error(f"Missing required columns: {', '.join(missing_columns)}")
+            return None
+            
         return df
     except Exception as e:
-        st.error(f"Error loading data: {e}")
+        st.error(f"Error loading data: {str(e)}")
+        st.error("Please ensure your CSV file has all required columns and valid data.")
         return None
 
 def main():
