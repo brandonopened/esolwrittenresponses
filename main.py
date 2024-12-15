@@ -58,6 +58,9 @@ def main():
         students = ['All Students'] + students
         selected_student = st.selectbox("", students)
 
+        # Analyze button placed above response section
+        analyze_button = st.button("Analyze Responses")
+        
         st.header("Student Response")
         
         # Get student responses
@@ -115,7 +118,8 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
             
-            if st.button("Analyze Responses", type="primary"):
+            # Handle analysis when button is clicked
+            if analyze_button:
                 analysis_results = analyze_response(response_text)
                 st.session_state['analysis_results'] = analysis_results
                 st.session_state['show_analysis'] = True
@@ -157,15 +161,18 @@ def main():
             st.subheader("Export Analysis")
             
             if st.button("Export Analysis Results"):
+                # Get student name for export
+                student_identifier = "all_students" if selected_student == "All Students" else selected_student
+                
                 # Create DataFrame for predetermined codes
                 predetermined_df = pd.DataFrame([
-                    {"Category": code, "Analysis": results['predetermined_codes'].get(code, "")}
+                    {"Student": student_identifier, "Category": code, "Analysis": results['predetermined_codes'].get(code, "")}
                     for code in codes
                 ])
                 
                 # Create DataFrame for emergent codes
                 emergent_df = pd.DataFrame([
-                    {"Category": code, "Analysis": results['emergent_codes'].get(code, "")}
+                    {"Student": student_identifier, "Category": code, "Analysis": results['emergent_codes'].get(code, "")}
                     for code in emergent_codes
                 ])
                 
@@ -177,10 +184,11 @@ def main():
                 
                 # Convert DataFrame to CSV for download
                 csv = export_df.to_csv(index=False)
+                filename = f"response_analysis_{student_identifier.lower().replace(' ', '_')}.csv"
                 st.download_button(
                     label="Download Analysis CSV",
                     data=csv,
-                    file_name="response_analysis_results.csv",
+                    file_name=filename,
                     mime="text/csv"
                 )
 
