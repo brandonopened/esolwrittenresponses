@@ -45,6 +45,10 @@ def load_data(uploaded_file=None):
         return None
 
 def main():
+    # Initialize session state for historical tracking
+    if 'analysis_history' not in st.session_state:
+        st.session_state.analysis_history = {}
+    
     # Title
     st.title("Special Education Response Analysis")
 
@@ -61,6 +65,18 @@ def main():
         
         if uploaded_file is not None:
             st.success("Custom data loaded successfully!")
+            
+        # Historical Analysis Section
+        st.header("Analysis History")
+        if st.session_state.analysis_history:
+            selected_history = st.selectbox(
+                "View Previous Analyses",
+                options=list(st.session_state.analysis_history.keys()),
+                format_func=lambda x: f"{x.split('_')[0]} - {x.split('_')[1]}"
+            )
+            if st.button("Load Selected Analysis"):
+                st.session_state.analysis_results = st.session_state.analysis_history[selected_history]
+                st.session_state.show_analysis = True
 
     # Load data
     df = load_data(uploaded_file)
@@ -143,6 +159,13 @@ def main():
                 analysis_results = analyze_response(response_text)
                 st.session_state['analysis_results'] = analysis_results
                 st.session_state['show_analysis'] = True
+                
+                # Add to history with timestamp
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                history_key = f"{selected_student}_{timestamp}"
+                st.session_state.analysis_history[history_key] = analysis_results
+                st.success("Analysis completed and saved to history!")
 
     with col2:
         st.header("Analysis Results")
