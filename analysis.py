@@ -20,28 +20,28 @@ Text to analyze: {text}
 
 Return a JSON object with this structure, including any additional custom categories in custom_codes:
 {{"predetermined_codes": {{
-    "Academic Language Support": ["Student Name: 'exact quote'"],
-    "Grammar Support": ["Student Name: 'exact quote'"],
-    "Content Knowledge Support": ["Student Name: 'exact quote'"],
-    "Collaboration with Teachers": ["Student Name: 'exact quote'"],
-    "Student Engagement": ["Student Name: 'exact quote'"],
-    "Assessment of Language Proficiency": ["Student Name: 'exact quote'"]
+    "Academic Language Support": "Student Name: 'exact quote'",
+    "Grammar Support": "Student Name: 'exact quote'",
+    "Content Knowledge Support": "Student Name: 'exact quote'",
+    "Collaboration with Teachers": "Student Name: 'exact quote'",
+    "Student Engagement": "Student Name: 'exact quote'",
+    "Assessment of Language Proficiency": "Student Name: 'exact quote'"
 }},
 "emergent_codes": {{
-    "Perceptions of Language Acquisition": ["Student Name: 'exact quote'"],
-    "Perceived Challenges": ["Student Name: 'exact quote'"],
-    "Innovative Practices": ["Student Name: 'exact quote'"],
-    "Perceptions of Error": ["Student Name: 'exact quote'"]
+    "Perceptions of Language Acquisition": "Student Name: 'exact quote'",
+    "Perceived Challenges": "Student Name: 'exact quote'",
+    "Innovative Practices": "Student Name: 'exact quote'",
+    "Perceptions of Error": "Student Name: 'exact quote'"
 }},
-"custom_codes": {{{", ".join([f'"{cat}": ["Student Name: \'exact quote\'"]' for cat in custom_categories]) if custom_categories else ""}}}
+"custom_codes": {{{", ".join([f'"{cat}": "Student Name: \'exact quote\'"' for cat in custom_categories]) if custom_categories else ""}}}
 }}
 
 Critical Instructions:
 1. ONLY use exact, word-for-word quotes from the text - NO paraphrasing or summarizing
 2. Each quote must be prefixed with the student's name
 3. Put quotes in 'single quotes' to clearly delineate them
-4. If multiple relevant quotes exist, include them as separate entries in the array
-5. If no relevant quote exists for a category, use ["No direct quote found"]
+4. If multiple relevant quotes exist, separate them with semicolons
+5. If no relevant quote exists for a category, use "No direct quote found"
 6. Do not interpret or explain the quotes - just provide them exactly as written"""
 
     try:
