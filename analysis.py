@@ -34,8 +34,10 @@ Return a JSON object with this structure, including any additional custom catego
     "Perceptions of Error": "Student Name: 'exact quote'"
 }},
 "custom_codes": {{{", ".join([f'"{cat}": "Student Name: \'exact quote\'"' for cat in custom_categories]) if custom_categories else ""}}}
-}}
+}}"""
 
+    # Add instructions as a separate string
+    instructions = """
 Critical Instructions:
 1. ONLY use exact, word-for-word quotes from the text - NO paraphrasing or summarizing
 2. Each quote must be prefixed with the student's name
@@ -44,12 +46,15 @@ Critical Instructions:
 5. If no relevant quote exists for a category, use "No direct quote found"
 6. Do not interpret or explain the quotes - just provide them exactly as written"""
 
+    # Combine prompt and instructions
+    full_prompt = prompt + instructions
+
     try:
         response = client.chat.completions.create(
             model=MODEL,
             messages=[
                 {"role": "system", "content": "You are an expert in analyzing special education responses. Always respond with valid JSON."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": full_prompt}
             ],
             response_format={"type": "json_object"},
             temperature=0.7
