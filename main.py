@@ -15,7 +15,7 @@ styles.apply_styles()
 
 def load_data():
     try:
-        df = pd.read_csv("Sample_Student_Data_with_Codes.csv")
+        df = pd.read_csv("student_engagement_responses.csv")
         return df
     except Exception as e:
         st.error(f"Error loading data: {e}")
@@ -36,30 +36,36 @@ def main():
     with col1:
         st.header("Select Student")
         
-        # Get unique students from the DataFrame
+        # Get unique students from the DataFrame and add "All Students" option
         students = df['Student'].dropna().unique().tolist()
+        students = ['All Students'] + students
         selected_student = st.selectbox("", students)
 
         st.header("Student Response")
         
         # Get student responses
         if selected_student:
-            student_data = df[df['Student'] == selected_student].iloc[0]
-            
-            response_text = f"""
-            "{selected_student}, 5th Grade Teacher"
+            if selected_student == 'All Students':
+                # Combine all student responses
+                all_responses = []
+                for _, student_data in df.iterrows():
+                    response = f"""
+                    Student: {student_data['Student']}
+                    Response:
+                    {student_data['What student information do you need to plan the lesson?']}
+                    """
+                    all_responses.append(response)
+                response_text = "\n\n".join(all_responses)
+            else:
+                # Single student response
+                student_data = df[df['Student'] == selected_student].iloc[0]
+                response_text = f"""
+                "{selected_student}, 5th Grade Teacher"
 
-            Student Information:
-            Language Spoken: Arabic/English
-            Current Level of Proficiency: Advanced
-            Prior Knowledge/Experience: Extensive teaching experience
-            Learning Styles and Abilities: Multiple
-            Supports Needed for Collaborative Writing: Differentiated instruction
-
-            Responses:
-            What student information do you need to plan the lesson?
-            {student_data['What student information do you need to plan the lesson?']}
-            """
+                Responses:
+                What student information do you need to plan the lesson?
+                {student_data['What student information do you need to plan the lesson?']}
+                """
             
             st.text_area("", value=response_text, height=300, disabled=True)
             
