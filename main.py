@@ -5,6 +5,8 @@ import styles
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+import hashlib
+import hmac
 
 # Page configuration
 st.set_page_config(
@@ -13,6 +15,41 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Login management
+def check_password(password):
+    """Check if the password matches the stored hash."""
+    # In a real application, use a secure password hash from the database
+    # For this demo, we'll use a simple hash comparison
+    correct_password = "Tessagirl"
+    return hmac.compare_digest(password, correct_password)
+
+def login():
+    """Returns True if the user is logged in."""
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+
+    if st.session_state.logged_in:
+        return True
+
+    st.title("Login")
+    
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    
+    if st.button("Login"):
+        if username.lower() == "admin" and check_password(password):
+            st.session_state.logged_in = True
+            st.experimental_rerun()
+        else:
+            st.error("Invalid username or password")
+            return False
+            
+    return False
+
+def logout():
+    """Logs out the user."""
+    st.session_state.logged_in = False
+    st.experimental_rerun()
 # Apply custom styles
 styles.apply_styles()
 
@@ -90,6 +127,15 @@ def main():
     # Initialize session state for historical tracking
     if 'analysis_history' not in st.session_state:
         st.session_state.analysis_history = {}
+        
+    # Check login status
+    if not login():
+        return
+        
+    # Add logout button in sidebar
+    with st.sidebar:
+        if st.button("Logout"):
+            logout()
     
     # Title
     st.title("Special Education Response Analysis")
