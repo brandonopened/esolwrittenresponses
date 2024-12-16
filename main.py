@@ -1,57 +1,47 @@
 import streamlit as st
 import pandas as pd
-from analysis import analyze_response
-import styles
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-import hashlib
-import hmac
+from styles import apply_styles
+from analysis import analyze_response
 
 # Page configuration
 st.set_page_config(
     page_title="Special Education Response Analysis",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # Login management
-def check_password(password):
-    """Check if the password matches the stored hash."""
-    # In a real application, use a secure password hash from the database
-    # For this demo, we'll use a simple hash comparison
-    correct_password = "Tessagirl"
-    return hmac.compare_digest(password, correct_password)
-
-def login():
-    """Returns True if the user is logged in."""
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
-
-    if st.session_state.logged_in:
-        return True
-
-    st.title("Login")
-    
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    
-    if st.button("Login"):
-        if username.lower() == "admin" and check_password(password):
-            st.session_state.logged_in = True
-            st.rerun()
+def check_password():
+    """Returns `True` if the user had the correct password."""
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == "Tessagirl" and st.session_state["username"].lower() == "admin":
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store the password
+            del st.session_state["username"]  # Don't store the username
         else:
-            st.error("Invalid username or password")
-            return False
-            
-    return False
+            st.session_state["password_correct"] = False
 
-def logout():
-    """Logs out the user."""
-    st.session_state.logged_in = False
-    st.rerun()
-# Apply custom styles
-styles.apply_styles()
+    if "password_correct" not in st.session_state:
+        # First run, show input for password
+        st.text_input("Username", key="username")
+        st.text_input("Password", type="password", key="password")
+        st.button("Login", on_click=password_entered)
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, show input + error
+        st.text_input("Username", key="username")
+        st.text_input("Password", type="password", key="password")
+        st.button("Login", on_click=password_entered)
+        st.error("😕 User not known or password incorrect")
+        return False
+    else:
+        # Password correct
+        return True
 
 def load_data(uploaded_file=None):
     try:
@@ -128,14 +118,15 @@ def main():
     if 'analysis_history' not in st.session_state:
         st.session_state.analysis_history = {}
         
-    # Check login status
-    if not login():
+    # Check authentication
+    if not check_password():
         return
         
     # Add logout button in sidebar
     with st.sidebar:
         if st.button("Logout"):
-            logout()
+            st.session_state["password_correct"] = False
+            st.rerun()
     
     # Title
     st.title("Special Education Response Analysis")
@@ -350,4 +341,6 @@ def main():
             """)
 
 if __name__ == "__main__":
+    # Apply custom styles
+    apply_styles()
     main()
