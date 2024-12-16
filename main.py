@@ -75,6 +75,9 @@ def load_data(uploaded_file=None):
         return None
 
 def generate_heatmap(df):
+    if df.empty:
+        raise ValueError("No data available for heatmap generation")
+
     # Define the analysis codes
     codes = [
         'Academic Language Support',
@@ -91,45 +94,64 @@ def generate_heatmap(df):
     
     # Initialize a matrix to store code frequencies
     students = df['Student'].unique()
+    if len(students) == 0:
+        raise ValueError("No students found in the data")
+        
     matrix = np.zeros((len(students), len(codes)))
     
     # Fill the matrix with code frequencies
     for i, student in enumerate(students):
-        student_data = df[df['Student'] == student]
-        
-        # Combine all responses for the student
-        response_text = f"""
-        Student: {student}
-        
-        Student Information Needed:
-        {student_data['What student information do you need to plan the lesson?'].iloc[0]}
-        
-        Information from Other Teachers:
-        {student_data['What information would you ask of the other fifth-grade teachers?'].iloc[0]}
-        
-        Student Engagement:
-        {student_data['How would you ensure all students are engaged in the lesson?'].iloc[0]}
-        
-        Assessment Approach:
-        {student_data['How would you assess the assignment?'].iloc[0]}
-        
-        Objectives Assessment:
-        {student_data["How would you assess students' understanding of each of the objectives?"].iloc[0]}
-        """
-        
-        # Analyze the response
-        analysis_results = analyze_response(response_text)
-        
-        # Count code frequencies
-        for j, code in enumerate(codes):
-            if j < 6:  # Predetermined codes
-                quotes = analysis_results['predetermined_codes'].get(code, ["No direct quote found"])
-            else:  # Emergent codes
-                quotes = analysis_results['emergent_codes'].get(code, ["No direct quote found"])
+        try:
+            student_data = df[df['Student'] == student]
+            if student_data.empty:
+                print(f"No data found for student: {student}")
+                continue
+                
+            # Combine all responses for the student
+            response_text = f"""
+            Student: {student}
             
-            # Count non-empty quotes
-            valid_quotes = [q for q in quotes if q != "No direct quote found"]
-            matrix[i, j] = len(valid_quotes)
+            Student Information Needed:
+            {student_data['What student information do you need to plan the lesson?'].iloc[0]}
+            
+            Information from Other Teachers:
+            {student_data['What information would you ask of the other fifth-grade teachers?'].iloc[0]}
+            
+            Student Engagement:
+            {student_data['How would you ensure all students are engaged in the lesson?'].iloc[0]}
+            
+            Assessment Approach:
+            {student_data['How would you assess the assignment?'].iloc[0]}
+            
+            Objectives Assessment:
+            {student_data["How would you assess students' understanding of each of the objectives?"].iloc[0]}
+            """
+            
+            # Analyze the response
+            print(f"Analyzing responses for student: {student}")
+            analysis_results = analyze_response(response_text)
+            
+            if not isinstance(analysis_results, dict):
+                print(f"Invalid analysis results for student {student}: {analysis_results}")
+                continue
+                
+            # Count code frequencies
+            for j, code in enumerate(codes):
+                try:
+                    if j < 6:  # Predetermined codes
+                        quotes = analysis_results.get('predetermined_codes', {}).get(code, ["No direct quote found"])
+                    else:  # Emergent codes
+                        quotes = analysis_results.get('emergent_codes', {}).get(code, ["No direct quote found"])
+                    
+                    # Count non-empty quotes
+                    valid_quotes = [q for q in quotes if q != "No direct quote found"]
+                    matrix[i, j] = len(valid_quotes)
+                except Exception as e:
+                    print(f"Error processing code {code} for student {student}: {str(e)}")
+                    matrix[i, j] = 0
+        except Exception as e:
+            print(f"Error processing student {student}: {str(e)}")
+            continue
     
     # Create the heatmap
     plt.figure(figsize=(15, 8))
@@ -362,18 +384,23 @@ def main():
         st.write("This heatmap shows the depth of responses across different questions for each student.")
         
         if st.button("Generate Heatmap"):
-            fig = generate_heatmap(df)
-            st.pyplot(fig)
-            plt.close()
+            try:
+                with st.spinner("Generating heatmap..."):
+                    fig = generate_heatmap(df)
+                    st.pyplot(fig)
+                    plt.close()
 
-            st.markdown("""
-            ### Understanding the Heatmap
-            - Each row represents a student
-            - Each column represents a question category
-            - The color intensity indicates the response length (number of words)
-            - Darker colors represent longer, more detailed responses
-            - Numbers show the exact word count for each response
-            """)
+                st.markdown("""
+                ### Understanding the Heatmap
+                - Each row represents a student
+                - Each column represents an analysis code category
+                - The color intensity indicates how frequently each code appears
+                - Darker colors represent more instances of that code
+                - Numbers show the exact count of relevant quotes for each code
+                """)
+            except Exception as e:
+                st.error(f"Error generating heatmap: {str(e)}")
+                print(f"Heatmap generation error: {str(e)}")
 
 if __name__ == "__main__":
     # Apply custom styles
