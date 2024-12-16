@@ -75,40 +75,75 @@ def load_data(uploaded_file=None):
         return None
 
 def generate_heatmap(df):
-    # Define the questions for analysis
-    questions = [
-        'What student information do you need to plan the lesson?',
-        'What information would you ask of the other fifth-grade teachers?',
-        'How would you ensure all students are engaged in the lesson?',
-        'How would you assess the assignment?',
-        "How would you assess students' understanding of each of the objectives?"
+    # Define the analysis codes
+    codes = [
+        'Academic Language Support',
+        'Grammar Support',
+        'Content Knowledge Support',
+        'Collaboration with Teachers',
+        'Student Engagement',
+        'Assessment of Language Proficiency',
+        'Perceptions of Language Acquisition',
+        'Perceived Challenges',
+        'Innovative Practices',
+        'Perceptions of Error'
     ]
     
-    # Initialize a matrix to store response lengths
+    # Initialize a matrix to store code frequencies
     students = df['Student'].unique()
-    matrix = np.zeros((len(students), len(questions)))
+    matrix = np.zeros((len(students), len(codes)))
     
-    # Fill the matrix with response lengths
+    # Fill the matrix with code frequencies
     for i, student in enumerate(students):
         student_data = df[df['Student'] == student]
-        for j, question in enumerate(questions):
-            response = student_data[question].iloc[0]
-            # Calculate complexity score based on response length
-            words = str(response).split()
-            matrix[i, j] = len(words)
+        
+        # Combine all responses for the student
+        response_text = f"""
+        Student: {student}
+        
+        Student Information Needed:
+        {student_data['What student information do you need to plan the lesson?'].iloc[0]}
+        
+        Information from Other Teachers:
+        {student_data['What information would you ask of the other fifth-grade teachers?'].iloc[0]}
+        
+        Student Engagement:
+        {student_data['How would you ensure all students are engaged in the lesson?'].iloc[0]}
+        
+        Assessment Approach:
+        {student_data['How would you assess the assignment?'].iloc[0]}
+        
+        Objectives Assessment:
+        {student_data["How would you assess students' understanding of each of the objectives?"].iloc[0]}
+        """
+        
+        # Analyze the response
+        analysis_results = analyze_response(response_text)
+        
+        # Count code frequencies
+        for j, code in enumerate(codes):
+            if j < 6:  # Predetermined codes
+                quotes = analysis_results['predetermined_codes'].get(code, ["No direct quote found"])
+            else:  # Emergent codes
+                quotes = analysis_results['emergent_codes'].get(code, ["No direct quote found"])
+            
+            # Count non-empty quotes
+            valid_quotes = [q for q in quotes if q != "No direct quote found"]
+            matrix[i, j] = len(valid_quotes)
     
     # Create the heatmap
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(15, 8))
     sns.heatmap(
         matrix,
-        xticklabels=['Student Info', 'Teacher Input', 'Engagement', 'Assessment', 'Objectives'],
+        xticklabels=[code.replace(' Support', '').replace('Perceptions of ', '') for code in codes],
         yticklabels=students,
         cmap='YlOrRd',
         annot=True,
         fmt='.0f',
-        cbar_kws={'label': 'Response Length (words)'}
+        cbar_kws={'label': 'Number of Relevant Quotes'}
     )
-    plt.title('Response Analysis Heatmap')
+    plt.title('Response Analysis Code Frequency Heatmap')
+    plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
     
     return plt
