@@ -39,7 +39,7 @@ def login():
     if st.button("Login"):
         if username.lower() == "admin" and check_password(password):
             st.session_state.logged_in = True
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Invalid username or password")
             return False
@@ -49,7 +49,7 @@ def login():
 def logout():
     """Logs out the user."""
     st.session_state.logged_in = False
-    st.experimental_rerun()
+    st.rerun()
 # Apply custom styles
 styles.apply_styles()
 
